@@ -31,7 +31,7 @@ function renderData(data, categoryFiltered) {
                                 </button>
                             </div>
                             <div class="p-3">
-                                <span class="category-badge mb-2 d-inline-block">${categoryFiltered}</span>
+                                <span class="category-badge mb-2 d-inline-block">${product.category}</span>
                                 <h6 class="mb-1">${product.title}</h6>
                                
                                 <div class="d-flex justify-content-between align-items-center">
