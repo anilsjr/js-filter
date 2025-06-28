@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
   <meta charset="UTF-8">
   <title>Product Details</title>
@@ -7,13 +7,47 @@
   <!-- Bootstrap 5 CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
 <body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+    <div class="container">
+      <a href="index.html" class="navbar-brand fw-bold">&larr; Back</a>
+      <div class="d-flex align-items-center gap-2">
+        <button id="theme-toggle" class="btn btn-outline-light btn-sm rounded-pill" aria-label="Toggle dark mode">
+          <i class="bi bi-moon-stars-fill"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
   <div class="container py-4">
-    <a href="index.html" class="btn btn-link mb-3">&larr; Back to Products</a>
     <div id="product-detail" class="row justify-content-center"></div>
   </div>
   <script>
+    // Dark mode toggle (copied logic)
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    function setTheme(theme) {
+      document.documentElement.setAttribute("data-bs-theme", theme);
+      localStorage.setItem('theme', theme);
+      themeToggleBtn.innerHTML = theme === 'dark'
+        ? '<i class="bi bi-brightness-high-fill"></i>'
+        : '<i class="bi bi-moon-stars-fill"></i>';
+    }
+    themeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute("data-bs-theme");
+      setTheme(current === "dark" ? "light" : "dark");
+    });
+    (function initTheme() {
+      const stored = localStorage.getItem('theme');
+      setTheme(stored === 'dark' ? 'dark' : 'light');
+    })();
+
+    // Wishlist logic
+    let wishlist = new Set(JSON.parse(localStorage.getItem('wishlist') || '[]'));
+    function updateWishlistInStorage() {
+      localStorage.setItem('wishlist', JSON.stringify(Array.from(wishlist)));
+    }
+
     async function renderProductDetail() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
@@ -45,7 +79,11 @@
             </div>
             <div class="card-body">
               <span class="badge bg-info text-dark mb-2">${product.category}</span>
-              <h2 class="card-title">${product.title}</h2>
+              <h2 class="card-title">${product.title}
+                <button id="wishlist-btn" class="btn btn-outline-danger btn-sm rounded-circle float-end ${wishlist.has(product.id) ? "active" : ""}" aria-label="Wishlist">
+                  <i class="bi ${wishlist.has(product.id) ? "bi-heart-fill" : "bi-heart"}"></i>
+                </button>
+              </h2>
               <p class="card-text">${product.description}</p>
               <ul class="list-group list-group-flush mb-3">
                 <li class="list-group-item"><strong>Brand:</strong> ${product.brand}</li>
@@ -61,6 +99,17 @@
           </div>
         </div>
       `;
+      // Wishlist btn logic
+      const wishBtn = document.getElementById('wishlist-btn');
+      wishBtn.onclick = function() {
+        if (wishlist.has(product.id)) {
+          wishlist.delete(product.id);
+        } else {
+          wishlist.add(product.id);
+        }
+        updateWishlistInStorage();
+        renderProductDetail();
+      };
     }
     renderProductDetail();
   </script>
