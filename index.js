@@ -1,58 +1,110 @@
 const container = document.getElementById('row');
-let datajson;
-const categoryContainer = document.getElementById('category-container');
+const categoriesList = document.getElementById('categories-list');
+const sortAsc = document.getElementById('sortAsc');
+const sortDesc = document.getElementById('sortDesc');
+const inStockOnly = document.getElementById('inStockOnly');
+const resultsCount = document.getElementById('results-count');
+const themeToggleBtn = document.getElementById('theme-toggle');
 
-async function getData(categoryFiltered = "ALL") {
-  const response = await fetch('https://dummyjson.com/products?limit=1000');
-  const data = await response.json();
-  datajson = data;
+let allProducts = [];
+let allCategories = [];
+let filter = {
+  category: 'all',
+  sort: 'asc',
+  inStock: false,
+};
+let wishlist = new Set(JSON.parse(localStorage.getItem('wishlist') || '[]'));
 
-  let categories = [...new Set(data.products.map(item => item.category))];
-  categories.unshift('All');
-  renderCategories(categories, categoryFiltered);
-  renderData(data, categoryFiltered);
+// ------ THEME ------
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-bs-theme", theme);
+  localStorage.setItem('theme', theme);
+  themeToggleBtn.innerHTML = theme === 'dark'
+    ? '<i class="bi bi-brightness-high-fill"></i>'
+    : '<i class="bi bi-moon-stars-fill"></i>';
 }
+themeToggleBtn.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute("data-bs-theme");
+  setTheme(current === "dark" ? "light" : "dark");
+});
+(function initTheme() {
+  const stored = localStorage.getItem('theme');
+  setTheme(stored === 'dark' ? 'dark' : 'light');
+})();
 
-function renderCategories(categories, currentCategory) {
-  categoryContainer.innerHTML = '';
-  categories.forEach(category => {
-    const button = document.createElement('button');
-    button.classList.add('category-buttons', 'btn', 'btn-outline-primary', 'm-1', 'rounded-pill', 'shadow-sm');
-    button.innerText = category.charAt(0).toUpperCase() + category.slice(1);
-    if (currentCategory && currentCategory.toUpperCase() === category.toUpperCase()) {
-      button.classList.add('active');
-    }
-    button.addEventListener('click', () => {
-      document.querySelectorAll('.category-buttons').forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
-      let categoryFiltered = category.toUpperCase();
-      renderData(datajson, categoryFiltered);
-    });
-    categoryContainer.appendChild(button);
+// ------ FETCH PRODUCTS ------
+async function fetchProducts() {
+  const res = await fetch('https://dummyjson.com/products?limit=1000');
+  const data = await res.json();
+  allProducts = data.products;
+  allCategories = Array.from(new Set(allProducts.map(p => p.category)));
+  allCategories.unshift('all');
+  renderCategories();
+  renderProducts();
+}
+fetchProducts();
+
+// ------ FILTER LOGIC ------
+function renderCategories() {
+  categoriesList.innerHTML = '';
+  allCategories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'list-group-item list-group-item-action' +
+      (filter.category === cat ? ' active' : '') +
+      ' text-capitalize';
+    btn.textContent = cat.replaceAll('-', ' ');
+    btn.onclick = () => {
+      filter.category = cat;
+      document.querySelectorAll('.list-group-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderProducts();
+    };
+    categoriesList.appendChild(btn);
   });
 }
 
-function renderData(data, categoryFiltered) {
-  container.innerHTML = '';
-  const filteredProducts = categoryFiltered === "ALL"
-    ? data.products
-    : data.products.filter(product => product.category.toUpperCase() === categoryFiltered);
+// Listen for sort and stock filter changes
+sortAsc.onchange = sortDesc.onchange = function() {
+  filter.sort = this.value;
+  renderProducts();
+};
+inStockOnly.onchange = function() {
+  filter.inStock = this.checked;
+  renderProducts();
+};
 
-  if(filteredProducts.length === 0) {
-    container.innerHTML = `<div class="col-12 text-center my-4"><h4>No products found.</h4></div>`;
+// ------ WISHLIST LOGIC ------
+function updateWishlistInStorage() {
+  localStorage.setItem('wishlist', JSON.stringify(Array.from(wishlist)));
+}
+
+// ------ RENDER PRODUCTS ------
+function renderProducts() {
+  let products = allProducts.slice();
+  if (filter.category !== 'all') {
+    products = products.filter(p => p.category === filter.category);
+  }
+  if (filter.inStock) {
+    products = products.filter(p => p.stock > 0);
+  }
+  products.sort((a, b) =>
+    filter.sort === 'asc' ? a.price - b.price : b.price - a.price
+  );
+  resultsCount.textContent = products.length + ' products found';
+  container.innerHTML = '';
+  if (!products.length) {
+    container.innerHTML = '<div class="col-12 text-center my-4"><h4>No products found.</h4></div>';
     return;
   }
-
-  filteredProducts.forEach((product) => {
-    let itemBox = document.createElement('div');
-    itemBox.classList.add('col', 'col-sm-6', 'col-md-4', 'col-lg-3', 'mt-4');
-
+  products.forEach(product => {
+    const itemBox = document.createElement('div');
+    itemBox.className = 'col col-sm-6 col-md-4 col-lg-3 mt-4';
     itemBox.innerHTML = `
-      <div class="product-card shadow-lg rounded-4 h-100 hover-scale" data-id="${product.id}" style="cursor:pointer;">
+      <div class="product-card shadow-lg rounded-4 h-100 hover-scale" style="cursor:pointer;" data-id="${product.id}">
         <div class="position-relative">
           <img src="${product.thumbnail}" class="product-image w-100 rounded-top-4" alt="Product" style="height:230px;object-fit:cover;">
-          <button class="wishlist-btn shadow">
-            <i class="bi bi-heart"></i>
+          <button class="wishlist-btn shadow ${wishlist.has(product.id) ? "active" : ""}" data-id="${product.id}" aria-label="Wishlist">
+            <i class="bi ${wishlist.has(product.id) ? "bi-heart-fill" : "bi-heart"}"></i>
           </button>
         </div>
         <div class="p-3">
@@ -70,15 +122,24 @@ function renderData(data, categoryFiltered) {
         </div>
       </div>
     `;
-
+    // Card navigation
     itemBox.querySelector('.product-card').addEventListener('click', function(e) {
-      // Prevent bubbling from inner buttons
-      if (e.target.closest('button')) return;
+      if (e.target.closest('.wishlist-btn') || e.target.closest('.add-to-cart') || e.target.closest('.buy')) return;
       window.location.href = `product.html?id=${product.id}`;
     });
-
+    // Wishlist button
+    const wishBtn = itemBox.querySelector('.wishlist-btn');
+    wishBtn.onclick = (e) => {
+      e.stopPropagation();
+      const prodId = product.id;
+      if (wishlist.has(prodId)) {
+        wishlist.delete(prodId);
+      } else {
+        wishlist.add(prodId);
+      }
+      updateWishlistInStorage();
+      renderProducts();
+    };
     container.appendChild(itemBox);
   });
 }
-
-getData();
