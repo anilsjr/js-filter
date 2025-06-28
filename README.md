@@ -1,37 +1,48 @@
-## JS Filter
-simple but yet effective javascript filter
+# JS Filter Product Catalog
 
-# Demo
-[https://anilsjr.github.io/js-filter/](https://anilsjr.github.io/js-filter/)
-
-## Table of Contents
-- [Introduction](#introduction)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- - [Application](#appication)
-
-
-## Introduction
-JS Filter is a JavaScript library designed to help developers filter collections of data efficiently and effectively. Whether you're working with arrays, objects, or other data structures, JS Filter provides a simple and intuitive API to perform various filtering operations.
+A simple, beautiful product catalog built with JavaScript, HTML, and CSS. Products and categories are fetched from [dummyjson.com](https://dummyjson.com/). Users can filter products by category, and click on any product card to see detailed information.
 
 ## Features
-- **Ease of Use**: Simple and intuitive API for filtering data.
-- **Versatility**: Supports various data structures including arrays and objects.
-- **Performance**: Optimized for performance to handle large datasets efficiently.
-- **Customization**: Highly customizable to suit different filtering needs.
 
-## Installation
-To use JS Filter in your project, you can install it via npm:
+- **All Product Categories**: Dynamically loads all categories from the live API.
+- **Category Filtering**: Instantly filter products by category.
+- **Responsive UI**: Beautiful, modern design with Bootstrap 5.
+- **Product Details Page**: Click any product to see a dedicated details page with images, price, rating, description, and brand.
+- **Add to Cart/Buy Now UI**: (Demo UI only, not functional yet)
+- **Wishlist Icon**: (Demo UI only)
 
-## Usage
+## Demo
 
-## Application
-JS Filter can be applied in various scenarios where data filtering is required. Here are a few examples:
-- E-commerce Websites: Filter products based on categories, prices, ratings, etc.
-- Data Analysis: Filter large datasets to extract relevant information.
-- Forms: Validate and filter form input data.
-- Dashboards: Filter and display data based on user preferences.
+![Product Catalog Screenshot](screenshot.png) <!-- Add your screenshot file -->
 
-```bash
-npm install js-filter
+## Getting Started
+
+1. **Clone this repository:**
+   ```sh
+   git clone https://github.com/anilsjr/js-filter.git
+   ```
+2. **Open `index.html` in your browser**  
+   That's it! No build or server required.
+
+## File Structure
+
+- `index.html` – Main product list UI
+- `index.js` – JS logic for fetching and rendering products and categories
+- `product.html` – Product detail page
+- `style.css` – Custom styles
+
+## How it works
+
+- On load, fetches all products from [dummyjson.com](https://dummyjson.com/products?limit=1000)
+- Renders all categories as filter buttons at the top
+- Clicking a category filters the product list
+- Clicking a product opens its detail page (`product.html?id=PRODUCT_ID`)
+
+## Customization
+
+- UI uses Bootstrap 5 and Bootstrap Icons via CDN
+- Easily customizable by editing `style.css` and HTML files
+
+## License
+
+MIT
