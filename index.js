@@ -3,7 +3,7 @@ let datajson;
 let categoryButtons = document.querySelectorAll('.category-buttons');
 
 async function getData(categoryFiltered) {
-    const response = await fetch('https://dummyjson.com/products');
+    const response = await fetch('https://dummyjson.com/products?limit=1000');
     const data = await response.json();
     datajson = data;
 
@@ -31,7 +31,7 @@ function renderData(data, categoryFiltered) {
                                 </button>
                             </div>
                             <div class="p-3">
-                                <span class="category-badge mb-2 d-inline-block">${product.category}</span>
+                                <span class="category-badge mb-2 d-inline-block">Electronics</span>
                                 <h6 class="mb-1">${product.title}</h6>
                                
                                 <div class="d-flex justify-content-between align-items-center">
@@ -64,4 +64,3 @@ categoryButtons.forEach((button) => {
 
 let categoryFiltered = 'ALL';
 getData(categoryFiltered);
-
