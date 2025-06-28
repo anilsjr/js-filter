@@ -3,7 +3,7 @@ let datajson;
 let categoryButtons = document.querySelectorAll('.category-buttons');
 
 async function getData(categoryFiltered) {
-    const response = await fetch('https://dummyjson.com/products');
+    const response = await fetch('https://dummyjson.com/products?limit=1000');
     const data = await response.json();
     datajson = data;
 
